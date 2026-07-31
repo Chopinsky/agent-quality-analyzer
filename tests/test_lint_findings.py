@@ -61,6 +61,6 @@ def test_present_frontmatter_passes():
 
 
 def test_oversized_frontmatter():
-    text = "---\nname: x\ndescription: " + "word " * 120 + "\n---\n\n# S\n"
+    text = "---\nname: x\ndescription: " + "word " * 250 + "\n---\n\n# S\n"
     _, findings = analyze_text(text, ".claude/agents/x.md")
     assert any(f["rule_id"] == "oversized-frontmatter" for f in findings)
