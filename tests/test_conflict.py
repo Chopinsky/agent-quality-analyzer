@@ -59,6 +59,13 @@ def test_no_false_positive_on_distinct_rules():
     assert detect_conflicts(fa) == []
 
 
+def test_near_duplicate_different_lengths():
+    fa = [_fa("AGENTS.md", "# A\n\n- " + "a" * 40 + "\n"),
+          _fa(".claude/agents/x.md", "# B\n\n- " + "a" * 52 + "\n")]
+    conflicts = detect_conflicts(fa)
+    assert any(c["type"] == "near-duplicate-rule" for c in conflicts)
+
+
 def test_conflicts_sorted_deterministically():
     fa = [_fa("AGENTS.md", "# A\n\n- never use the read tool\n- keep answers short\n"),
           _fa(".claude/agents/x.md", "# B\n\n- must use the read tool\n- keep answers short\n")]

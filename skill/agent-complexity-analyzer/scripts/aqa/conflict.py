@@ -48,7 +48,7 @@ def detect_conflicts(file_analyses):
             f2, l2, t2, n2 = all_rules[j]
             if t1 == t2 or min(len(t1), len(t2)) < 10:
                 continue
-            if min(len(t1), len(t2)) / max(len(t1), len(t2)) > 0.85:
+            if 2 * min(len(t1), len(t2)) > 0.85 * (len(t1) + len(t2)):
                 ratio = SequenceMatcher(None, t1, t2).ratio()
                 if ratio > 0.85:
                     conflicts.append({
