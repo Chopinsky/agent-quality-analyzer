@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 ROOT_NAMES = ("AGENTS.md", "CLAUDE.md", "agents.md", "claude.md")
@@ -24,7 +25,9 @@ def discover_agent_files(target):
         if base.is_dir():
             found.extend(p for p in sorted(base.rglob("*.md")) if _not_git(p))
     found.extend(p for p in sorted(target.rglob("SKILL.md")) if _not_git(p))
-    unique = {str(p): p for p in found}
+    unique = {}
+    for p in found:
+        unique.setdefault(os.path.normcase(str(p)), p)
     return sorted(unique.values(), key=lambda p: str(p.relative_to(target)).replace("\\", "/"))
 
 
