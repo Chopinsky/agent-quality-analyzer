@@ -31,6 +31,15 @@ In a Claude Code session, run:
 Or from Claude Desktop: **Customize → Skills → + → paste
 `Chopinsky/agent-quality-analyzer` → Sync**.
 
+### Claude Code — community installer
+
+If you have Node.js installed, the community `skills` CLI clones the repo and
+installs the skill for you (add `-g` for global install):
+
+```bash
+npx skills add Chopinsky/agent-quality-analyzer
+```
+
 ### Claude Code — manual (any install)
 
 The skill is just a folder. Clone and symlink it into your personal skills
