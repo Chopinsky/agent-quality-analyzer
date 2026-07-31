@@ -115,7 +115,7 @@ python3 -m aqa.cli report findings.json [--llm llm.json] [--out report.md]
 ```
 
 - `--date YYYY-MM-DD` makes output byte-deterministic.
-- Exit codes: 0 ok; 2 bad target/args/JSON; 3 diff-mode git failure.
+- Exit codes: 0 ok; 2 bad target/args or malformed JSON; 3 diff-mode git failure.
 
 ## What it checks
 

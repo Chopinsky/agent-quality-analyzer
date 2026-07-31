@@ -33,3 +33,13 @@ def discover_agent_files(target):
 
 def _not_git(path):
     return ".git" not in path.parts
+
+
+def is_agent_rel(rel):
+    rel = rel.replace("\\", "/")
+    if rel in ROOT_NAMES:
+        return True
+    for sub in SKILL_SUBDIRS:
+        if rel.startswith("/".join(sub) + "/"):
+            return True
+    return rel.endswith("SKILL.md")

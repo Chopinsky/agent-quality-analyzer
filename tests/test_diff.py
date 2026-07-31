@@ -96,3 +96,18 @@ def test_diff_analysis_bad_base(tmp_path):
     _commit(tmp_path)
     with pytest.raises(DiffError):
         diff_analysis(tmp_path, base="does-not-exist")
+
+
+def test_diff_analysis_deleted_file(tmp_path):
+    _init_repo(tmp_path)
+    (tmp_path / "AGENTS.md").write_text(V1, encoding="utf-8")
+    _commit(tmp_path)
+    (tmp_path / "AGENTS.md").unlink()
+    result = diff_analysis(tmp_path)
+    assert result["per_file"]
+    entry = result["per_file"][0]
+    assert entry["path"] == "AGENTS.md"
+    assert entry["base_present"] is True
+    assert entry["deltas"]["tokens"]["current"] == 0
+    assert entry["deltas"]["rules"]["delta"] < 0
+    assert any("deleted" in r for r in result["regression_risks"])

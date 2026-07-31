@@ -118,7 +118,7 @@ def detect_conflicts(file_analyses):
             continue
         required_any = optional_any = False
         for file in sorted(files):
-            rules_for = [r for r in all_rules if r[0] == file and tool in r[2]]
+            rules_for = [r for r in all_rules if r[0] == file and re.search(rf"\b{re.escape(tool)}\b", r[2])]
             if any(any(m in r[2] for m in REQUIRE_MARKERS) for r in rules_for):
                 required_any = True
             if any(re.search(r"\b(optional|may|might|can|if needed)\b", r[2]) for r in rules_for):

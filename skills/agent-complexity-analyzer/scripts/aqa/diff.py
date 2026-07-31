@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 from .conflict import detect_conflicts
-from .discovery import discover_agent_files
+from .discovery import discover_agent_files, is_agent_rel
 from .static_analyzer import analyze_text, extract_headings, extract_rules
 
 
@@ -11,7 +11,8 @@ class DiffError(Exception):
 
 
 def run_git(target, args):
-    proc = subprocess.run(["git"] + args, cwd=str(target), capture_output=True, text=True)
+    proc = subprocess.run(["git"] + args, cwd=str(target), capture_output=True, text=True,
+                          encoding="utf-8", errors="replace")
     if proc.returncode != 0:
         raise DiffError(proc.stderr.strip() or proc.stdout.strip() or "git command failed")
     return proc.stdout
@@ -63,7 +64,10 @@ def _analyses(target, rels, base, use_base):
             if text is None:
                 continue
         else:
-            text = Path(target, rel).read_text(encoding="utf-8", errors="replace")
+            path = Path(target, rel)
+            if not path.is_file():
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
         metrics, findings = analyze_text(text, rel)
         analyses.append({"path": rel, "metrics": metrics, "findings": findings,
                          "rules": extract_rules(text), "headings": extract_headings(text)})
@@ -79,18 +83,31 @@ def diff_analysis(target, base="HEAD"):
     except DiffError:
         raise DiffError(f"cannot resolve base ref '{base}'")
 
-    rels = [str(p.relative_to(target)).replace("\\", "/") for p in discover_agent_files(target)]
+    rel_current = {str(p.relative_to(target)).replace("\\", "/")
+                   for p in discover_agent_files(target)}
+    rel_base = set()
+    try:
+        out = run_git(target, ["ls-tree", "-r", "--name-only", base])
+        rel_base = {line for line in out.splitlines() if line and is_agent_rel(line)}
+    except DiffError:
+        pass
+    rels = sorted(rel_current | rel_base)
     current = _analyses(target, rels, base, False)
     base_res = _analyses(target, rels, base, True)
     current_by_path = {a["path"]: a for a in current}
     base_by_path = {a["path"]: a for a in base_res}
 
     per_file = []
+    deleted = []
     for rel in rels:
         cur = current_by_path.get(rel)
         bse = base_by_path.get(rel)
-        if cur is None:
+        if cur is None and bse is None:
             continue
+        if cur is None:
+            cur = {"path": rel, "metrics": {k: 0 for k in bse["metrics"]},
+                   "findings": [], "rules": [], "headings": []}
+            deleted.append(rel)
         base_metrics = bse["metrics"] if bse else {k: 0 for k in cur["metrics"]}
         base_findings = bse["findings"] if bse else []
         base_rules_n = len(bse["rules"]) if bse else 0
@@ -122,6 +139,7 @@ def diff_analysis(target, base="HEAD"):
         entry["lines_added"], entry["lines_deleted"] = line_counts(target, entry["path"], base)
 
     risks = _regression_risks(per_file, current, base_res)
+    risks.extend(f"{rel}: agent file deleted" for rel in deleted)
     return {"per_file": per_file, "regression_risks": risks}
 
 
