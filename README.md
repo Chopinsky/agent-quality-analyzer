@@ -10,10 +10,26 @@ recommendations); every number is computed by scripts.
 
 ## Install
 
-### opencode (plugin)
+### opencode (skill)
+
+No manifest or npm install is needed. opencode discovers skills by directory
+convention only: a folder named after the skill that contains `SKILL.md`. Copy
+the skill directory into a discovered location (global config dir):
 
 ```bash
-opencode plugin add /path/to/agent-quality-analyzer
+cp -r skill/agent-complexity-analyzer ~/.config/opencode/skills/
+```
+
+PowerShell:
+
+```powershell
+Copy-Item -Recurse skill\agent-complexity-analyzer $env:USERPROFILE\.config\opencode\skills\
+```
+
+Or symlink (POSIX):
+
+```bash
+ln -s "$PWD/skill/agent-complexity-analyzer" ~/.config/opencode/skills/
 ```
 
 ### Claude Code (skill)
@@ -22,10 +38,25 @@ opencode plugin add /path/to/agent-quality-analyzer
 cp -r skill/agent-complexity-analyzer ~/.claude/skills/
 ```
 
+Or symlink:
+
+```bash
+ln -s "$PWD/skill/agent-complexity-analyzer" ~/.claude/skills/
+```
+
 The skill directory is self-contained (scripts included); no Python packages to
 install for skill use. Python 3.10+ is required.
 
 ### CLI (optional, for CI gates)
+
+Without installing anything, run the shipped scripts directly:
+
+```bash
+cd skill/agent-complexity-analyzer/scripts
+python -m aqa.cli analyze path/to/repo --mode diff --report report.md
+```
+
+Or install the package, which exposes the `aqa` command:
 
 ```bash
 pip install .
