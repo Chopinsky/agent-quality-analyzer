@@ -1,5 +1,40 @@
 from aqa.report import merge_llm, render_report
 
+import shutil
+from pathlib import Path
+
+from aqa.cli import main
+
+FIXTURES = Path(__file__).parent / "fixtures"
+GOLDEN = Path(__file__).parent / "golden" / "conflicting_agent_report.md"
+
+
+def test_golden_conflicting_agent(tmp_path):
+    shutil.copytree(FIXTURES / "conflicting_agent", tmp_path / "agent")
+    out_json = tmp_path / "f.json"
+    out_report = tmp_path / "r.md"
+    assert main(["analyze", str(tmp_path / "agent"), "--json", str(out_json),
+                 "--report", str(out_report), "--date", "2026-01-01"]) == 0
+    actual = out_report.read_text(encoding="utf-8").replace(str(tmp_path / "agent"), "<TARGET>")
+    assert actual == GOLDEN.read_text(encoding="utf-8")
+
+
+def test_determinism(tmp_path):
+    shutil.copytree(FIXTURES / "bloated_agent", tmp_path / "agent")
+    first = tmp_path / "a.json"
+    second = tmp_path / "b.json"
+    assert main(["analyze", str(tmp_path / "agent"), "--json", str(first),
+                 "--date", "2026-01-01"]) == 0
+    assert main(["analyze", str(tmp_path / "agent"), "--json", str(second),
+                 "--date", "2026-01-01"]) == 0
+    assert first.read_bytes() == second.read_bytes()
+    r1 = tmp_path / "1.md"
+    r2 = tmp_path / "2.md"
+    assert main(["report", str(first), "--out", str(r1), "--date", "2026-01-01"]) == 0
+    assert main(["report", str(second), "--out", str(r2), "--date", "2026-01-01"]) == 0
+    assert r1.read_bytes() == r2.read_bytes()
+
+
 MINIMAL = {
     "schema_version": "1.0",
     "mode": "base",
