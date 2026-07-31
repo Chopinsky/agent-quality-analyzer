@@ -114,6 +114,12 @@ python3 -m aqa.cli analyze <target> [--mode base|diff] [--base <ref>] [--json fi
 python3 -m aqa.cli report findings.json [--llm llm.json] [--out report.md]
 ```
 
+- `<target>`: a directory containing agent instruction files, or a single
+  agent instruction file (base mode only).
+- `--mode diff`: only the agent instruction files changed on the current
+  branch vs `--base` (default `HEAD`) are analyzed — ideal for PR review
+  (`--base <base-branch>` after checking out the PR branch). Requires an
+  attached branch with at least one changed agent instruction.
 - `--date YYYY-MM-DD` makes output byte-deterministic.
 - Exit codes: 0 ok; 2 bad target/args or malformed JSON; 3 diff-mode git failure.
 

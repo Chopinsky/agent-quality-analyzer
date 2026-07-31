@@ -111,3 +111,33 @@ def test_diff_analysis_deleted_file(tmp_path):
     assert entry["deltas"]["tokens"]["current"] == 0
     assert entry["deltas"]["rules"]["delta"] < 0
     assert any("deleted" in r for r in result["regression_risks"])
+
+
+def test_diff_analysis_untouched_excluded(tmp_path):
+    _init_repo(tmp_path)
+    (tmp_path / "AGENTS.md").write_text(V1, encoding="utf-8")
+    skill = tmp_path / ".claude" / "skills" / "s1" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text("# Skill\n", encoding="utf-8")
+    _commit(tmp_path)
+    (tmp_path / "AGENTS.md").write_text(V2, encoding="utf-8")
+    result = diff_analysis(tmp_path)
+    assert [e["path"] for e in result["per_file"]] == ["AGENTS.md"]
+
+
+def test_diff_analysis_no_agent_changes(tmp_path):
+    _init_repo(tmp_path)
+    (tmp_path / "AGENTS.md").write_text(V1, encoding="utf-8")
+    _commit(tmp_path)
+    with pytest.raises(DiffError):
+        diff_analysis(tmp_path)
+
+
+def test_diff_analysis_detached_head(tmp_path):
+    _init_repo(tmp_path)
+    (tmp_path / "AGENTS.md").write_text(V1, encoding="utf-8")
+    _commit(tmp_path)
+    subprocess.run(["git", "checkout", "-q", "--detach"], cwd=str(tmp_path), check=True)
+    (tmp_path / "AGENTS.md").write_text(V2, encoding="utf-8")
+    with pytest.raises(DiffError):
+        diff_analysis(tmp_path)
