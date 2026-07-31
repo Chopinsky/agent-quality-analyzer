@@ -105,6 +105,7 @@ Emits `{type, files, severity, evidence}` entries:
 ### 4. diff.py — before/after comparison (diff mode)
 
 - Uses `git show <base>:<path>` for the base version (default base `HEAD`; `--base <ref>` overrides).
+- File set is the union of the working-tree agent files and `git ls-tree -r <base>` (deleted files appear with zeroed current metrics and an "agent file deleted" regression risk).
 - Per file: metric deltas for all 5 dimensions, added/removed rule counts, added/removed findings by rule_id, changed-line count (from `git diff`).
 - Regression risks (deterministic flags): density increase ≥ 20%, negative-constraint count increase, stop-condition removal, new conflict introduced, new error-severity findings, branching increase ≥ 20%.
 - Not a git repo → `--diff` errors with exit code 3.
@@ -139,7 +140,7 @@ Renders from the JSON contract. Fixed template, byte-deterministic (no timestamp
   "mode": "base|diff",
   "target": "/abs/path",
   "git": {"repo": true, "head": "abc1234", "base": "HEAD", "dirty": false},
-  "files": [{"path": "...", "metrics": {"d1_density": {...}, "d2_branching": {...}, "d3_coupling": {...}, "d4_negatives": {...}, "d5_ambiguity": {...}}, "findings": [{"rule_id": "...", "severity": "...", "message": "...", "line": 12}]}],
+  "files": [{"path": "...", "metrics": {"tokens": 1200, "rules": 18, "conditions": 9, "branching": 1.5, "tool_refs": 5, "cross_refs": 2, "negatives": 3, "negative_ratio": 0.17, "hedges": 2, "quantifiers": 1, "entropy": 4.1, "section_overlap": 0.1, "template_vars": 0, "sections": 6}, "findings": [{"file": "...", "rule_id": "...", "severity": "...", "message": "...", "line": 12}]}],
   "conflicts": [{"type": "...", "severity": "...", "files": ["..."], "evidence": "..."}],
   "scores": {"d1": 88, "d2": 90, "d3": 95, "d4": 72, "d5": 81, "structural": 76, "conflicts": 92, "overall": 84, "grade": "B"},
   "diff": {"per_file": [...], "regression_risks": [...]} | null,

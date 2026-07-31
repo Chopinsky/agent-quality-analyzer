@@ -55,3 +55,30 @@ def test_report_merge_llm(tmp_path):
 def test_report_bad_json(tmp_path):
     (tmp_path / "f.json").write_text("{not json", encoding="utf-8")
     assert main(["report", str(tmp_path / "f.json")]) == 2
+
+
+def test_analyze_empty_dir(tmp_path):
+    assert main(["analyze", str(tmp_path)]) == 2
+
+
+def test_report_wrong_shape_findings(tmp_path):
+    (tmp_path / "f.json").write_text("[1, 2, 3]", encoding="utf-8")
+    assert main(["report", str(tmp_path / "f.json")]) == 2
+
+
+def test_report_missing_scores(tmp_path):
+    (tmp_path / "f.json").write_text(json.dumps({"schema_version": "1.0"}), encoding="utf-8")
+    assert main(["report", str(tmp_path / "f.json")]) == 2
+
+
+def test_report_wrong_shape_llm(tmp_path):
+    (tmp_path / "f.json").write_text(json.dumps({
+        "schema_version": "1.0", "mode": "base", "target": str(tmp_path),
+        "git": {"repo": False, "head": None, "base": None, "dirty": False},
+        "files": [], "conflicts": [],
+        "scores": {"d1": 100, "d2": 100, "d3": 100, "d4": 100, "d5": 100,
+                   "structural": 100, "conflicts": 100, "overall": 100, "grade": "A"},
+        "diff": None, "llm": None,
+    }), encoding="utf-8")
+    (tmp_path / "l.json").write_text(json.dumps(["not", "a", "dict"]), encoding="utf-8")
+    assert main(["report", str(tmp_path / "f.json"), "--llm", str(tmp_path / "l.json")]) == 2

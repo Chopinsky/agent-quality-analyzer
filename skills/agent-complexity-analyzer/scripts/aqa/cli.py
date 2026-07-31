@@ -26,6 +26,9 @@ def cmd_analyze(args):
         return 2
     rels = [str(p.relative_to(target)).replace("\\", "/") for p in files]
     file_analyses = [analyze_file(p, rel) for p, rel in zip(files, rels)]
+    if not file_analyses and args.mode != "diff":
+        print("error: no agent instruction files found in target", file=sys.stderr)
+        return 2
     conflicts = detect_conflicts(file_analyses)
     scores = compute_scores(file_analyses, conflicts)
     git = git_info(target)
@@ -50,13 +53,21 @@ def cmd_analyze(args):
         "diff": diff,
         "llm": None,
     }
-    Path(args.json).write_text(json.dumps(contract, indent=2, ensure_ascii=False), encoding="utf-8")
+    try:
+        Path(args.json).write_text(json.dumps(contract, indent=2, ensure_ascii=False), encoding="utf-8")
+    except OSError as exc:
+        print(f"error: cannot write output JSON: {exc}", file=sys.stderr)
+        return 2
     print(f"analyzed {len(file_analyses)} file(s) in {args.mode} mode")
     print(f"overall score: {scores['overall']}/100 ({scores['grade']})")
     print(f"findings written to: {args.json}")
     if args.report:
         out = render_report(contract, args.date or date.today().isoformat())
-        Path(args.report).write_text(out, encoding="utf-8")
+        try:
+            Path(args.report).write_text(out, encoding="utf-8")
+        except OSError as exc:
+            print(f"error: cannot write report: {exc}", file=sys.stderr)
+            return 2
         print(f"report written to: {args.report}")
     return 0
 
@@ -67,15 +78,28 @@ def cmd_report(args):
     except (OSError, json.JSONDecodeError) as exc:
         print(f"error: cannot read findings JSON: {exc}", file=sys.stderr)
         return 2
+    if not isinstance(contract, dict) or not isinstance(contract.get("files"), list) \
+            or not isinstance(contract.get("scores"), dict) \
+            or "overall" not in contract["scores"] or "grade" not in contract["scores"]:
+        print("error: findings JSON has invalid shape (expected files and scores)", file=sys.stderr)
+        return 2
     if args.llm:
         try:
             llm = json.loads(Path(args.llm).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             print(f"error: cannot read LLM JSON: {exc}", file=sys.stderr)
             return 2
+        if not isinstance(llm, dict):
+            print("error: LLM JSON must be an object with assessment/semantic_conflicts/recommendations",
+                  file=sys.stderr)
+            return 2
         contract = merge_llm(contract, llm)
     out = render_report(contract, args.date or date.today().isoformat())
-    Path(args.out).write_text(out, encoding="utf-8")
+    try:
+        Path(args.out).write_text(out, encoding="utf-8")
+    except OSError as exc:
+        print(f"error: cannot write report: {exc}", file=sys.stderr)
+        return 2
     print(f"report written to: {args.out}")
     return 0
 

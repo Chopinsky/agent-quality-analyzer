@@ -57,7 +57,8 @@ scripts directory (`python3 -m aqa.cli` — the package uses relative imports, s
    ```
 
    Constraints on this pass:
-   - `assessment`, `semantic_conflicts`, and `recommendations` must be prose strings.
+   - `assessment` must be a prose string; `semantic_conflicts` and
+     `recommendations` must be arrays of prose strings.
    - NEVER write or change any numbers, scores, grades, or metrics. Scores are
      computed deterministically by the scripts. Do not include scores in
      `assessment` prose; describe quality in words only.
@@ -78,6 +79,7 @@ scripts directory (`python3 -m aqa.cli` — the package uses relative imports, s
 
 - If `analyze` exits 3 (diff mode on a non-git directory or bad base ref),
   explain the requirement and suggest `--mode base`.
-- If `analyze` exits 2, the target is invalid; ask the user for a valid directory.
+- If `analyze` exits 2, the target is invalid or contains no agent instruction
+  files; ask the user for a valid directory.
 - The report is deterministic for identical inputs; only your `llm.json` prose
   varies between runs. Never claim a score you did not read from findings.json.
