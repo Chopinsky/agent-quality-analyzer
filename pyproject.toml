@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-quality-analyzer"
+version = "0.1.0"
+description = "Deterministic zero-LLM static analyzer for agent instruction complexity"
+requires-python = ">=3.10"
+
+[project.scripts]
+aqa = "aqa.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "skill/agent-complexity-analyzer/scripts"}
+
+[tool.setuptools.packages.find]
+where = ["skill/agent-complexity-analyzer/scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
