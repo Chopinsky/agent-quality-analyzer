@@ -24,8 +24,9 @@ scripts directory (`python3 -m aqa.cli` — the package uses relative imports, s
 `cli.py` cannot be executed directly). Use `python3` on Linux/macOS and
 `python` on Windows.
 
-1. Determine inputs. `TARGET` is the directory containing the agent files
-   (defaults to the current working directory if the user gives no target).
+1. Determine inputs. `TARGET` is the required directory containing the agent
+   files; it must be an absolute path, so resolve it first (e.g. with
+   `realpath`/`pwd -P`) before changing directories.
    `MODE` is `base` (current state) or `diff` (before/after a git change;
    optional `--base <ref>` to compare against a specific ref, default `HEAD`).
    Run:
