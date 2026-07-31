@@ -24,11 +24,19 @@ scripts directory (`python3 -m aqa.cli` — the package uses relative imports, s
 `cli.py` cannot be executed directly). Use `python3` on Linux/macOS and
 `python` on Windows.
 
-1. Determine inputs. `TARGET` is the required directory containing the agent
-   files; it must be an absolute path, so resolve it first (e.g. with
-   `realpath`/`pwd -P`) before changing directories.
-   `MODE` is `base` (current state) or `diff` (before/after a git change;
+1. Determine inputs. `TARGET` is the directory containing the agent files — or,
+   in base mode, the exact path of a single agent instruction file (when the
+   user points at one specific file, always pass that file's path itself).
+   `TARGET` must be an absolute path, so resolve it first (e.g. with
+   `realpath`/`pwd -P`) before changing directories. Diff mode requires a
+   directory target.
+   `MODE` is `base` (current state) or `diff` (changes on the current branch;
    optional `--base <ref>` to compare against a specific ref, default `HEAD`).
+   Diff mode only includes agent instruction files the change actually touched
+   (content differs from `--base`); it requires an attached branch and at
+   least one changed agent instruction, otherwise `analyze` exits 3. To review
+   a PR, check out the PR branch and pass its base branch:
+   `--mode diff --base <base-branch>`.
    Run:
 
    ```
@@ -77,8 +85,10 @@ scripts directory (`python3 -m aqa.cli` — the package uses relative imports, s
 
 ## Notes
 
-- If `analyze` exits 3 (diff mode on a non-git directory or bad base ref),
-  explain the requirement and suggest `--mode base`.
+- If `analyze` exits 3 (diff mode on a non-git directory, unresolvable base
+  ref, detached HEAD, or no agent instruction changes on the branch), explain
+  the requirement and suggest `--mode base` (or `--base <base-branch>` when
+  reviewing a PR).
 - If `analyze` exits 2, the target is invalid or contains no agent instruction
   files; ask the user for a valid directory.
 - The report is deterministic for identical inputs; only your `llm.json` prose

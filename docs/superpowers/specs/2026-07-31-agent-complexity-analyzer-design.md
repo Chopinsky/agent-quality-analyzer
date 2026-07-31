@@ -62,7 +62,7 @@ Deterministic, sorted path list. Patterns (relative to target dir):
 - `.opencode/skills/*/SKILL.md`
 - `**/SKILL.md` (any depth)
 
-Non-agent files (README.md, docs/, tests/, etc.) are ignored. Missing target dir → error exit code 2.
+Non-agent files (README.md, docs/, tests/, etc.) are ignored. Missing target dir → error exit code 2. `analyze` also accepts a single agent instruction file path as the target (base mode only; diff mode requires a directory).
 
 ### 2. static_analyzer.py — five dimensions + structural lint
 
@@ -104,8 +104,9 @@ Emits `{type, files, severity, evidence}` entries:
 
 ### 4. diff.py — before/after comparison (diff mode)
 
+- Requires an attached branch (detached HEAD errors). Errors if no agent instruction changed between `--base` and the current branch.
+- File set is the agent instructions touched by the change: `git diff --name-only <base>` plus agent files new to the working tree, intersected with the known agent instruction files (deleted files appear with zeroed current metrics and an "agent file deleted" regression risk).
 - Uses `git show <base>:<path>` for the base version (default base `HEAD`; `--base <ref>` overrides).
-- File set is the union of the working-tree agent files and `git ls-tree -r <base>` (deleted files appear with zeroed current metrics and an "agent file deleted" regression risk).
 - Per file: metric deltas for all 5 dimensions, added/removed rule counts, added/removed findings by rule_id, changed-line count (from `git diff`).
 - Regression risks (deterministic flags): density increase ≥ 20%, negative-constraint count increase, stop-condition removal, new conflict introduced, new error-severity findings, branching increase ≥ 20%.
 - Not a git repo → `--diff` errors with exit code 3.
@@ -148,7 +149,7 @@ Renders from the JSON contract. Fixed template, byte-deterministic (no timestamp
 }
 ```
 
-The skill agent writes `llm.json` (same `llm` shape); `report.py` merges it at render time. The `llm` block is optional — report renders fine without it.
+The skill agent writes `llm.json` (same `llm` shape); `report.py` merges it at render time. The `llm` block is optional — report renders fine without it. In diff mode, `files` contains only the agent instructions touched by the change (the same set as `diff.per_file`); scores and conflicts are computed over that subset.
 
 ### 8. CLI
 
@@ -159,7 +160,7 @@ aqa report <findings.json> [--llm <llm.json>] [--out <path>]
 
 - `analyze` writes findings.json (default `findings.json` in cwd) and, with `--report`, also renders the MD.
 - `report` renders MD from an existing findings.json, optionally merging `--llm llm.json`.
-- Errors: exit 2 (bad target), exit 3 (diff requested but not a git repo / bad base ref), exit 1 (internal).
+- Errors: exit 2 (bad target), exit 3 (diff requested but not a git repo / bad base ref / detached HEAD / no agent instruction changes on the branch), exit 1 (internal).
 
 ### 9. Skill (SKILL.md) workflow
 
@@ -176,7 +177,7 @@ Skill agent procedure (written in SKILL.md):
 ## Error handling
 
 - Bad/missing target: CLI exit 2, message to stderr.
-- `--diff` on non-git dir or unresolvable base ref: exit 3.
+- Diff mode on non-git dir, unresolvable base ref, detached HEAD, or no agent instruction changes on the branch: exit 3.
 - Unreadable file (encoding errors): skipped with a warning finding; UTF-8 with `errors="replace"` never crashes.
 - Scripts are stdlib-only Python 3.10+; no network access, no randomness → byte-deterministic output for identical input.
 

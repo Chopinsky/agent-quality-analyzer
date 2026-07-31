@@ -82,6 +82,9 @@ def diff_analysis(target, base="HEAD"):
         run_git(target, ["rev-parse", "--verify", f"{base}^{{commit}}"])
     except DiffError:
         raise DiffError(f"cannot resolve base ref '{base}'")
+    branch = run_git(target, ["rev-parse", "--abbrev-ref", "HEAD"]).strip()
+    if branch == "HEAD":
+        raise DiffError("diff mode requires an attached branch (currently detached HEAD)")
 
     rel_current = {str(p.relative_to(target)).replace("\\", "/")
                    for p in discover_agent_files(target)}
@@ -91,7 +94,11 @@ def diff_analysis(target, base="HEAD"):
         rel_base = {line for line in out.splitlines() if line and is_agent_rel(line)}
     except DiffError:
         pass
-    rels = sorted(rel_current | rel_base)
+    out = run_git(target, ["diff", "--name-only", base])
+    touched = {line for line in out.splitlines() if line}
+    rels = sorted((touched | (rel_current - rel_base)) & (rel_current | rel_base))
+    if not rels:
+        raise DiffError(f"no agent instruction changes between {base} and the current branch")
     current = _analyses(target, rels, base, False)
     base_res = _analyses(target, rels, base, True)
     current_by_path = {a["path"]: a for a in current}

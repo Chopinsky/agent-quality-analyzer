@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 from aqa.cli import main
 
@@ -59,6 +60,46 @@ def test_report_bad_json(tmp_path):
 
 def test_analyze_empty_dir(tmp_path):
     assert main(["analyze", str(tmp_path)]) == 2
+
+
+def test_analyze_single_file(tmp_path):
+    f = tmp_path / "AGENTS.md"
+    f.write_text("# Agent\n\n- one rule, stop when done.\n", encoding="utf-8")
+    out = tmp_path / "f.json"
+    assert main(["analyze", str(f), "--json", str(out)]) == 0
+    contract = json.loads(out.read_text(encoding="utf-8"))
+    assert contract["mode"] == "base"
+    assert len(contract["files"]) == 1
+    assert contract["files"][0]["path"] == "AGENTS.md"
+
+
+def test_analyze_single_file_missing(tmp_path):
+    assert main(["analyze", str(tmp_path / "nope.md")]) == 2
+
+
+def test_analyze_single_file_diff_mode(tmp_path):
+    f = tmp_path / "AGENTS.md"
+    f.write_text("# Agent\n", encoding="utf-8")
+    assert main(["analyze", str(f), "--mode", "diff"]) == 2
+
+
+def test_analyze_diff_touched_only(tmp_path):
+    subprocess.run(["git", "init", "-q"], cwd=str(tmp_path), check=True)
+    subprocess.run(["git", "config", "user.email", "t@e.com"], cwd=str(tmp_path), check=True)
+    subprocess.run(["git", "config", "user.name", "T"], cwd=str(tmp_path), check=True)
+    (tmp_path / "AGENTS.md").write_text("# Agent\n\n- one rule, stop when done.\n", encoding="utf-8")
+    skill = tmp_path / ".claude" / "skills" / "s1" / "SKILL.md"
+    skill.parent.mkdir(parents=True)
+    skill.write_text("# Skill\n", encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=str(tmp_path), check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=str(tmp_path), check=True)
+    (tmp_path / "AGENTS.md").write_text(
+        "# Agent\n\n- one rule, stop when done.\n- do not use the write tool\n", encoding="utf-8")
+    out = tmp_path / "f.json"
+    assert main(["analyze", str(tmp_path), "--mode", "diff", "--json", str(out)]) == 0
+    contract = json.loads(out.read_text(encoding="utf-8"))
+    assert [f["path"] for f in contract["files"]] == ["AGENTS.md"]
+    assert [e["path"] for e in contract["diff"]["per_file"]] == ["AGENTS.md"]
 
 
 def test_report_wrong_shape_findings(tmp_path):

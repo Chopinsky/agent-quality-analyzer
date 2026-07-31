@@ -16,22 +16,28 @@ SCHEMA_VERSION = "1.0"
 
 def cmd_analyze(args):
     target = Path(args.target)
-    if not target.is_dir():
-        print(f"error: target is not a directory: {args.target}", file=sys.stderr)
+    if target.is_file():
+        if args.mode != "base":
+            print("error: diff mode requires a directory target", file=sys.stderr)
+            return 2
+        files = [target]
+        rels = [target.name]
+        git = git_info(target.parent)
+    elif target.is_dir():
+        try:
+            files = discover_agent_files(target)
+        except ValueError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+        rels = [str(p.relative_to(target)).replace("\\", "/") for p in files]
+        git = git_info(target)
+        if not files and args.mode != "diff":
+            print("error: no agent instruction files found in target", file=sys.stderr)
+            return 2
+    else:
+        print(f"error: target does not exist: {args.target}", file=sys.stderr)
         return 2
-    try:
-        files = discover_agent_files(target)
-    except ValueError as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 2
-    rels = [str(p.relative_to(target)).replace("\\", "/") for p in files]
     file_analyses = [analyze_file(p, rel) for p, rel in zip(files, rels)]
-    if not file_analyses and args.mode != "diff":
-        print("error: no agent instruction files found in target", file=sys.stderr)
-        return 2
-    conflicts = detect_conflicts(file_analyses)
-    scores = compute_scores(file_analyses, conflicts)
-    git = git_info(target)
     diff = None
     if args.mode == "diff":
         try:
@@ -40,8 +46,12 @@ def cmd_analyze(args):
             print(f"error: {exc}", file=sys.stderr)
             return 3
         git["base"] = args.base
+        touched = {e["path"] for e in diff["per_file"]}
+        file_analyses = [fa for fa in file_analyses if fa["path"] in touched]
     else:
         git["base"] = None
+    conflicts = detect_conflicts(file_analyses)
+    scores = compute_scores(file_analyses, conflicts)
     contract = {
         "schema_version": SCHEMA_VERSION,
         "mode": args.mode,
