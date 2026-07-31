@@ -158,6 +158,8 @@ def _lint_findings(text, metrics, rel_path):
     if len(fence_lines) % 2 == 1:
         add("unclosed-code-fence", "error", "odd number of code fences", fence_lines[0])
     for i, raw in enumerate(lines, 1):
+        if CODE_FENCE_RE.match(raw):
+            continue
         if raw.count("`") % 2 == 1:
             add("unclosed-backtick", "warn", "line has an odd number of backtick characters", i)
             break
