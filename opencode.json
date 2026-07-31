@@ -1,0 +1,7 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "name": "agent-complexity-analyzer",
+  "version": "0.1.0",
+  "description": "Zero-LLM static analyzer for agent instruction complexity with deterministic markdown reports (base/diff modes)",
+  "skills": ["skill/agent-complexity-analyzer"]
+}
