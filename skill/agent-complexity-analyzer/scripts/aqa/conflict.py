@@ -48,13 +48,14 @@ def detect_conflicts(file_analyses):
             f2, l2, t2, n2 = all_rules[j]
             if t1 == t2 or min(len(t1), len(t2)) < 10:
                 continue
-            ratio = SequenceMatcher(None, t1, t2).ratio()
-            if ratio > 0.85:
-                conflicts.append({
-                    "type": "near-duplicate-rule", "severity": "warn",
-                    "files": sorted({f1, f2}),
-                    "evidence": f"near-duplicate rules ('{t1}' vs '{t2}', similarity {ratio:.2f})",
-                })
+            if min(len(t1), len(t2)) / max(len(t1), len(t2)) > 0.85:
+                ratio = SequenceMatcher(None, t1, t2).ratio()
+                if ratio > 0.85:
+                    conflicts.append({
+                        "type": "near-duplicate-rule", "severity": "warn",
+                        "files": sorted({f1, f2}),
+                        "evidence": f"near-duplicate rules ('{t1}' vs '{t2}', similarity {ratio:.2f})",
+                    })
             neg1 = any(m in t1 for m in NEGATIVE_MARKERS)
             neg2 = any(m in t2 for m in NEGATIVE_MARKERS)
             if neg1 != neg2:
