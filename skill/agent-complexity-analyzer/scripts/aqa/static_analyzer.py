@@ -126,7 +126,7 @@ def analyze_text(text, rel_path):
     rules = extract_rules(text)
     metrics = {
         "tokens": token_estimate(text),
-        "rules": len(rules),
+        "rules": len(rules) + len(extract_headings(text)),
         "conditions": _count_words(text, CONDITION_WORDS),
         "branching": 1 + _count_words(text, CONDITION_WORDS),
         "tool_refs": _count_words(text, TOOL_NAMES),
@@ -140,7 +140,7 @@ def analyze_text(text, rel_path):
         "template_vars": len(TEMPLATE_VAR_RE.findall(text)),
         "sections": len(extract_headings(text)),
     }
-    metrics["negative_ratio"] = round(metrics["negatives"] / max(len(rules), 1), 3)
+    metrics["negative_ratio"] = round(metrics["negatives"] / max(metrics["rules"], 1), 3)
     return metrics, _lint_findings(text, metrics, rel_path)
 
 
