@@ -1,0 +1,10 @@
+{
+  "name": "agent-quality-analyzer",
+  "description": "Deterministic zero-LLM analysis of agent instruction complexity",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jacob Zuo"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Chopinsky/agent-quality-analyzer"
+}

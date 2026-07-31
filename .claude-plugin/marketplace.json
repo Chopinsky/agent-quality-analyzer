@@ -1,0 +1,17 @@
+{
+  "name": "agent-quality-analyzer",
+  "description": "Deterministic zero-LLM analysis of agent instruction complexity",
+  "metadata": {
+    "description": "Deterministic zero-LLM analysis of agent instruction complexity"
+  },
+  "owner": {
+    "name": "Jacob Zuo"
+  },
+  "plugins": [
+    {
+      "name": "agent-quality-analyzer",
+      "source": "./skills/agent-complexity-analyzer",
+      "description": "Deterministic zero-LLM analysis of agent instruction complexity"
+    }
+  ]
+}

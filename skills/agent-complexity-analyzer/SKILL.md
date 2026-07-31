@@ -1,6 +1,6 @@
 ---
 name: agent-complexity-analyzer
-description: Analyze the complexity of agent instruction files (AGENTS.md, CLAUDE.md, agent and skill definitions) with deterministic zero-LLM static analysis and a fixed markdown report. Use when the user asks to analyze an agent's instruction complexity, measure instruction bloat, check agent quality, compare an agent before/after changes (diff mode), or review rule conflicts. Triggers: "analyze this agent", "agent complexity", "check my AGENTS.md", "agent quality report", "did my agent get more complex", "instruction bloat", "conflicting rules in my agent".
+description: "Analyze the complexity of agent instruction files (AGENTS.md, CLAUDE.md, agent and skill definitions) with deterministic zero-LLM static analysis and a fixed markdown report. Use when the user asks to analyze an agent's instruction complexity, measure instruction bloat, check agent quality, compare an agent before/after changes (diff mode), or review rule conflicts. Triggers: \"analyze this agent\", \"agent complexity\", \"check my AGENTS.md\", \"agent quality report\", \"did my agent get more complex\", \"instruction bloat\", \"conflicting rules in my agent\"."
 ---
 
 # Agent Complexity Analyzer

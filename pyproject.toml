@@ -12,10 +12,10 @@ requires-python = ">=3.10"
 aqa = "aqa.cli:main"
 
 [tool.setuptools]
-package-dir = {"" = "skill/agent-complexity-analyzer/scripts"}
+package-dir = {"" = "skills/agent-complexity-analyzer/scripts"}
 
 [tool.setuptools.packages.find]
-where = ["skill/agent-complexity-analyzer/scripts"]
+where = ["skills/agent-complexity-analyzer/scripts"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

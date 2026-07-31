@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPTS = Path(__file__).resolve().parents[0] / ".." / "skill" / "agent-complexity-analyzer" / "scripts"
+SCRIPTS = Path(__file__).resolve().parents[0] / ".." / "skills" / "agent-complexity-analyzer" / "scripts"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
 ENV = {**os.environ, "PYTHONPATH": str(SCRIPTS)}
