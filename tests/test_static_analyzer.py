@@ -32,7 +32,7 @@ def test_extract_rules():
 def test_metrics_basic():
     text = (
         "# My Agent\n\n"
-        "- When the user asks, use the bash tool, and stop when done.\n"
+        "- If the user asks, use the bash tool, and stop when done.\n"
         "- If it fails, never retry silently; retry on error.\n"
         "- Then check the output and verify.\n"
     )
